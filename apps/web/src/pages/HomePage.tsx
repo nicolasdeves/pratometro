@@ -31,28 +31,35 @@ export function HomePage() {
         <h1 className="text-2xl font-extrabold">Olá{firstName ? `, ${firstName}` : ''}!</h1>
       </div>
 
-      {meals && (
-        <section className="space-y-4 rounded-3xl bg-white p-5 shadow-sm">
-          <GoalProgress consumed={total.kcal} goal={goal} source={source} />
-          {meals.length > 0 && (
-            <MacroBar protein={total.protein} carbs={total.carbs} fat={total.fat} />
+      {/* No computador: resumo do dia à esquerda, refeições à direita. */}
+      <div className="space-y-6 lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start lg:gap-8 lg:space-y-0">
+        <div className="space-y-6 lg:sticky lg:top-24">
+          {meals && (
+            <section className="space-y-4 rounded-3xl bg-white p-5 shadow-sm">
+              <GoalProgress consumed={total.kcal} goal={goal} source={source} />
+              {meals.length > 0 && (
+                <MacroBar protein={total.protein} carbs={total.carbs} fat={total.fat} />
+              )}
+            </section>
           )}
-        </section>
-      )}
 
-      <Link
-        to="/refeicoes/nova"
-        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-leaf-600 py-4 text-lg font-bold text-white shadow-sm hover:bg-leaf-700"
-      >
-        <Plus className="h-6 w-6" /> Nova refeição
-      </Link>
+          <Link
+            to="/refeicoes/nova"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-leaf-600 py-4 text-lg font-bold text-white shadow-sm hover:bg-leaf-700"
+          >
+            <Plus className="h-6 w-6" /> Nova refeição
+          </Link>
+        </div>
 
-      {meals && (
-        <MealList
-          meals={meals}
-          empty="Suas refeições do dia e o total de calorias aparecem aqui."
-        />
-      )}
+        <div className="space-y-3">
+          {meals && (
+            <MealList
+              meals={meals}
+              empty="Suas refeições do dia e o total de calorias aparecem aqui."
+            />
+          )}
+        </div>
+      </div>
     </div>
   );
 }

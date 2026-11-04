@@ -17,7 +17,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen pb-20 sm:pb-0">
       <header className="sticky top-0 z-10 border-b border-leaf-100 bg-cream/90 backdrop-blur">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-3">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 lg:px-8">
           <Link to="/">
             <Wordmark />
           </Link>
@@ -61,7 +61,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-3xl px-4 py-6">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 py-6 lg:px-8 lg:py-8">{children}</main>
       <nav className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-3 border-t border-leaf-100 bg-cream/95 backdrop-blur sm:hidden">
         {NAV.map((n) => (
           <NavLink

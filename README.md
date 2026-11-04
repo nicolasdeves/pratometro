@@ -38,7 +38,6 @@ kubectl -n pratometro-production create secret generic pratometro-secrets \
   --from-literal=GEMINI_API_KEY=... \
   --from-literal=GOOGLE_CLIENT_ID=... \
   --from-literal=JWT_ACCESS_SECRET="$(openssl rand -hex 32)"
-kubectl -n pratometro-production create secret tls pratometro-origin-cert --cert=origin.pem --key=origin.key
 ```
 
 No repositório do GitHub: secret `NEDEV_GITOPS_TOKEN` (token com escrita no nedev-gitops). O namespace também precisa do secret `ghcr` para puxar as imagens, como nos outros projetos.

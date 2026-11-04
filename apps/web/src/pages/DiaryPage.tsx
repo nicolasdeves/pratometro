@@ -53,53 +53,58 @@ export function DiaryPage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-extrabold">Diário</h1>
 
-      <section className="rounded-3xl bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between">
-          <button
-            type="button"
-            onClick={() => moveWeek(-1)}
-            className="grid h-9 w-9 place-items-center rounded-full text-muted hover:bg-leaf-50"
-            aria-label="Semana anterior"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <p className="font-semibold">{isCurrentWeek ? 'Últimos 7 dias' : range}</p>
-          <button
-            type="button"
-            onClick={() => moveWeek(1)}
-            disabled={isCurrentWeek}
-            className="grid h-9 w-9 place-items-center rounded-full text-muted hover:bg-leaf-50 disabled:opacity-30"
-            aria-label="Próxima semana"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
+      {/* No computador: semana à esquerda, dia selecionado à direita. */}
+      <div className="space-y-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-8 lg:space-y-0">
+        <section className="rounded-3xl bg-white p-5 shadow-sm lg:sticky lg:top-24">
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => moveWeek(-1)}
+              className="grid h-9 w-9 place-items-center rounded-full text-muted hover:bg-leaf-50"
+              aria-label="Semana anterior"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <p className="font-semibold">{isCurrentWeek ? 'Últimos 7 dias' : range}</p>
+            <button
+              type="button"
+              onClick={() => moveWeek(1)}
+              disabled={isCurrentWeek}
+              className="grid h-9 w-9 place-items-center rounded-full text-muted hover:bg-leaf-50 disabled:opacity-30"
+              aria-label="Próxima semana"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
+
+          <WeekChart days={totals} goal={goal} selected={selected} onSelect={setSelected} />
+
+          <dl className="mt-2 grid grid-cols-2 gap-3 text-center">
+            <div className="rounded-2xl bg-cream p-3">
+              <dt className="text-xs text-muted">Média por dia registrado</dt>
+              <dd className="text-lg font-extrabold">{kcal(average)}</dd>
+            </div>
+            <div className="rounded-2xl bg-cream p-3">
+              <dt className="text-xs text-muted">Dias dentro da meta</dt>
+              <dd className="text-lg font-extrabold">
+                {goal ? `${onGoal} de ${loggedDays.length}` : '—'}
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <div className="space-y-6">
+          <section className="space-y-4 rounded-3xl bg-white p-5 shadow-sm">
+            <h2 className="font-bold">{dayLabel(days[selected])}</h2>
+            <GoalProgress consumed={dayTotal.kcal} goal={goal} source={source} />
+            {dayMeals.length > 0 && (
+              <MacroBar protein={dayTotal.protein} carbs={dayTotal.carbs} fat={dayTotal.fat} />
+            )}
+          </section>
+
+          {meals && <MealList meals={dayMeals} empty="Nada registrado neste dia." />}
         </div>
-
-        <WeekChart days={totals} goal={goal} selected={selected} onSelect={setSelected} />
-
-        <dl className="mt-2 grid grid-cols-2 gap-3 text-center">
-          <div className="rounded-2xl bg-cream p-3">
-            <dt className="text-xs text-muted">Média por dia registrado</dt>
-            <dd className="text-lg font-extrabold">{kcal(average)}</dd>
-          </div>
-          <div className="rounded-2xl bg-cream p-3">
-            <dt className="text-xs text-muted">Dias dentro da meta</dt>
-            <dd className="text-lg font-extrabold">
-              {goal ? `${onGoal} de ${loggedDays.length}` : '—'}
-            </dd>
-          </div>
-        </dl>
-      </section>
-
-      <section className="space-y-4 rounded-3xl bg-white p-5 shadow-sm">
-        <h2 className="font-bold">{dayLabel(days[selected])}</h2>
-        <GoalProgress consumed={dayTotal.kcal} goal={goal} source={source} />
-        {dayMeals.length > 0 && (
-          <MacroBar protein={dayTotal.protein} carbs={dayTotal.carbs} fat={dayTotal.fat} />
-        )}
-      </section>
-
-      {meals && <MealList meals={dayMeals} empty="Nada registrado neste dia." />}
+      </div>
     </div>
   );
 }

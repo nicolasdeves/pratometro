@@ -28,6 +28,12 @@ body,
   min-height: 100%;
 }
 
+/* Reserva o espaço da barra de rolagem: sem isso a página "pula" para o lado
+   ao trocar de uma tela curta (Hoje) para uma que rola (Diário). */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   background: var(--color-cream);
   color: var(--color-ink);

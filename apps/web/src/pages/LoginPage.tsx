@@ -1,5 +1,6 @@
 import { Camera, MessageCircleQuestion, Mic } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { GoogleButton } from '../components/GoogleButton';
 import { Wordmark } from '../components/Logo';
 import { ApiError } from '../lib/api';
@@ -13,7 +14,11 @@ export function LoginPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [params] = useSearchParams();
+  // ?erro=google: a API devolveu para cá porque o login com Google (modo redirecionamento) falhou.
+  const [error, setError] = useState<string | null>(
+    params.get('erro') === 'google' ? 'Não foi possível entrar com o Google. Tente de novo.' : null,
+  );
   const [busy, setBusy] = useState(false);
 
   async function run(action: () => Promise<void>) {

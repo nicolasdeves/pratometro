@@ -87,6 +87,37 @@ export class AuthController {
     return this.respond(res, await this.auth.refresh(token, this.ctx(req)));
   }
 
+  /**
+   * Login com Google no modo redirecionamento (usado no celular): a página vai
+   * até o Google e volta com um POST de formulário trazendo o ID token. No
+   * iPhone o modo pop-up deixava a aba do Google em branco.
+   *
+   * CSRF: o Google grava o cookie `g_csrf_token` no nosso domínio e manda o
+   * mesmo valor no corpo; os dois precisam bater (double-submit).
+   */
+  @Public()
+  @Post('google/callback')
+  async googleCallback(@Req() req: Request, @Res() res: Response) {
+    const body = req.body as Record<string, unknown> | undefined;
+    const credential = typeof body?.credential === 'string' ? body.credential : '';
+    const bodyToken = typeof body?.g_csrf_token === 'string' ? body.g_csrf_token : '';
+    const cookies = req.cookies as Record<string, string | undefined> | undefined;
+    const cookieToken = cookies?.g_csrf_token;
+
+    if (!credential || !bodyToken || bodyToken !== cookieToken) {
+      return res.redirect(303, '/entrar?erro=google');
+    }
+    try {
+      this.limiter.hit(req.ip ?? 'unknown');
+      const result = await this.auth.loginWithGoogle(credential, this.ctx(req));
+      res.cookie(REFRESH_COOKIE, result.refreshToken, this.cookieOptions());
+      // O SPA recupera a sessão sozinho no carregamento (POST /auth/refresh).
+      return res.redirect(303, '/');
+    } catch {
+      return res.redirect(303, '/entrar?erro=google');
+    }
+  }
+
   // Público: a "credencial" do logout é o próprio cookie de refresh.
   // Assim quem está com o access token vencido ainda consegue sair.
   @Public()

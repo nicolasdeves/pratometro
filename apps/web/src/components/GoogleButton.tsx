@@ -2,7 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { authApi } from '../lib/api';
 
 interface GoogleId {
-  initialize: (cfg: { client_id: string; callback: (r: { credential: string }) => void }) => void;
+  initialize: (cfg: {
+    client_id: string;
+    callback?: (r: { credential: string }) => void;
+    ux_mode?: 'popup' | 'redirect';
+    login_uri?: string;
+  }) => void;
   renderButton: (el: HTMLElement, opts: Record<string, unknown>) => void;
 }
 
@@ -36,6 +41,21 @@ interface Props {
 }
 
 /**
+ * Celular usa redirecionamento: no iPhone o pop-up do Google ficava em branco
+ * (a aba nova não conseguia devolver o login para a do app). No computador o
+ * pop-up funciona e não tira a pessoa da página.
+ */
+const useRedirect = () => window.matchMedia('(pointer: coarse)').matches;
+
+/**
+ * Navegador interno de app (Instagram, Facebook, WhatsApp no Android...): o
+ * Google recusa login nesses navegadores, qualquer que seja o modo.
+ */
+export function isInAppBrowser() {
+  return /Instagram|FBAN|FBAV|WhatsApp|Line\/|; wv\)/i.test(navigator.userAgent);
+}
+
+/**
  * Botão "Continuar com o Google" (Google Identity Services). Devolve um ID
  * token que a API valida. Some sozinho se a API não tiver GOOGLE_CLIENT_ID.
  */
@@ -62,10 +82,16 @@ export function GoogleButton({ onCredential }: Props) {
     loadScript()
       .then(() => {
         if (!alive || !host.current || !window.google) return;
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: (r) => callback.current(r.credential),
-        });
+        window.google.accounts.id.initialize(
+          useRedirect()
+            ? {
+                client_id: clientId,
+                ux_mode: 'redirect',
+                // Precisa estar em "URIs de redirecionamento autorizados" no Google Console.
+                login_uri: `${window.location.origin}/api/auth/google/callback`,
+              }
+            : { client_id: clientId, callback: (r) => callback.current(r.credential) },
+        );
         window.google.accounts.id.renderButton(host.current, {
           type: 'standard',
           theme: 'outline',
@@ -90,7 +116,14 @@ export function GoogleButton({ onCredential }: Props) {
         ou
         <span className="h-px flex-1 bg-leaf-100" />
       </div>
-      <div ref={host} className="flex min-h-11 w-full justify-center" />
+      {isInAppBrowser() ? (
+        <p className="rounded-xl bg-leaf-50 px-3 py-2 text-center text-sm text-leaf-900">
+          Para entrar com o Google, abra esta página no Safari ou no Chrome (toque em ⋯ e em “Abrir
+          no navegador”). O Google não permite login dentro de outros apps.
+        </p>
+      ) : (
+        <div ref={host} className="flex min-h-11 w-full justify-center" />
+      )}
     </>
   );
 }

@@ -261,7 +261,7 @@ export function MealPage() {
           </h2>
           <p className="mt-2 text-leaf-900">{meal.notes}</p>
           <p className="mt-3 text-xs text-leaf-700">
-            Estimativa feita por IA ({meal.model}). Não substitui um nutricionista.
+            Estimativa feita por IA. Não substitui um nutricionista.
           </p>
         </section>
       )}

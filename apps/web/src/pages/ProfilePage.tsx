@@ -125,7 +125,8 @@ export function ProfilePage() {
 
         {uploading ? (
           <p className="flex items-center gap-2 rounded-2xl bg-leaf-50 p-4 text-sm font-semibold text-leaf-900">
-            <Sparkles className="h-5 w-5 animate-pulse text-leaf-600" /> Lendo o plano com o Gemini…
+            <Sparkles className="h-5 w-5 animate-pulse text-leaf-600" /> A IA está lendo o seu
+            plano…
           </p>
         ) : plan && s ? (
           <div className="space-y-4">

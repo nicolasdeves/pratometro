@@ -385,7 +385,7 @@ function Working({ preview, messages }: { preview: string; messages: string[] })
         <p className="flex items-center justify-center gap-2 text-lg font-bold">
           <Sparkles className="h-5 w-5 animate-pulse text-leaf-600" /> {messages[i]}
         </p>
-        <p className="mt-1 text-sm text-muted">O Gemini está olhando a foto e o que você contou.</p>
+        <p className="mt-1 text-sm text-muted">A IA está olhando a foto e o que você contou.</p>
       </div>
     </section>
   );

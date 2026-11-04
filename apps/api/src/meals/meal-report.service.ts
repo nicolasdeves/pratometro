@@ -205,7 +205,7 @@ export class MealReportService {
       .fontSize(8)
       .fillColor(MUTED)
       .text(
-        `Estimativa feita por inteligência artificial (${meal.model}) a partir da foto e da descrição. ` +
+        `Estimativa feita por inteligência artificial a partir da foto e da descrição. ` +
           'Os valores são aproximados e não substituem a orientação de um nutricionista.',
         left,
         footerY,

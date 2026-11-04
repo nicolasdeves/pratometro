@@ -1,0 +1,9 @@
+{
+  "name": "migrate",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Imagem do Job de migração (prisma migrate deploy) rodado como hook do ArgoCD",
+  "dependencies": {
+    "@pratometro/database": "*"
+  }
+}

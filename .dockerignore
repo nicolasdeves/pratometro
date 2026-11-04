@@ -1,0 +1,35 @@
+# O contexto de build é a raiz do monorepo. Sem este arquivo, o Docker envia
+# node_modules e os dist/ locais para o daemon — lento e contamina a imagem com
+# binários compilados para a máquina de quem buildou.
+
+node_modules
+**/node_modules
+
+# Artefatos de build: sempre regerados dentro da imagem.
+**/dist
+**/build
+packages/database/generated
+
+.turbo
+**/.turbo
+*.tsbuildinfo
+
+.git
+.github
+.vscode
+.idea
+
+# Segredos nunca entram na imagem — vêm do ambiente em runtime.
+**/.env
+**/.env.*
+!**/.env.example
+
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+Dockerfile
+**/Dockerfile
+.dockerignore
+docker-compose.yml

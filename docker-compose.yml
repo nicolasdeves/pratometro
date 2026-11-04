@@ -1,0 +1,25 @@
+# Infra de desenvolvimento: só o Postgres. A API e o web rodam com `npm run dev`.
+#
+#   docker compose up -d
+#
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pratometro-postgres
+    environment:
+      POSTGRES_USER: pratometro
+      POSTGRES_PASSWORD: pratometro
+      POSTGRES_DB: pratometro
+    ports:
+      - '5442:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'pratometro', '-d', 'pratometro']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

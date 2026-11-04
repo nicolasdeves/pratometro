@@ -1,0 +1,50 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+
+  /* Verde-folha: marca e ações principais. */
+  --color-leaf-50: #eef8f1;
+  --color-leaf-100: #d6efdf;
+  --color-leaf-500: #2c9a63;
+  --color-leaf-600: #1f7a4d;
+  --color-leaf-700: #19613e;
+  --color-leaf-900: #0f3a26;
+
+  /* Tomate: destaque (calorias, alertas leves). */
+  --color-tomato-100: #fde3d8;
+  --color-tomato-500: #f2683c;
+  --color-tomato-600: #d9532a;
+
+  /* Fundo creme e tinta. */
+  --color-cream: #fdf8ef;
+  --color-ink: #1d2a24;
+  --color-muted: #5f6f67;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Faixa de luz que percorre a foto enquanto a IA analisa. */
+@keyframes scan {
+  from {
+    top: -4rem;
+  }
+  to {
+    top: 100%;
+  }
+}
+
+.scan-line {
+  animation: scan 1.8s ease-in-out infinite alternate;
+}

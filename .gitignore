@@ -1,0 +1,22 @@
+# deps
+node_modules/
+
+# builds
+dist/
+build/
+packages/database/generated/
+
+# turbo
+.turbo/
+*.tsbuildinfo
+
+# env
+.env
+.env.*
+!.env.example
+
+# logs / os / editor
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db

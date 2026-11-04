@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+
+  /// A API roda em node:22-alpine (musl). Sem declarar o alvo, a imagem sobe e
+  /// só quebra na primeira query com "could not locate the Query Engine".
+  /// `native` mantém o dev (Windows/macOS) funcionando.
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Pessoa que usa o app. Entra por e-mail/senha, pelo Google, ou pelos dois
+/// (a conta é casada pelo e-mail no primeiro login com Google).
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  /// null = conta criada só pelo Google, sem senha definida.
+  password      String?
+  googleId      String?   @unique
+  avatarUrl     String?
+  lastLoginAt   DateTime?
+  /// Meta diária de calorias (o diário mostra o progresso contra ela).
+  dailyKcalGoal Int?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  refreshTokens RefreshToken[]
+  meals         Meal[]
+  mealPlan      MealPlan?
+}
+
+/// Refresh token opaco: só o SHA-256 fica no banco. Rotacionado a cada uso.
+model RefreshToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+  userAgent String?
+  ip        String?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+/// Refeição registrada pelo wizard: foto + descrição → análise do Gemini.
+/// Os totais são a soma dos itens, recalculados sempre que uma porção muda.
+model Meal {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Quando a pessoa comeu (o diário agrupa por este campo, no fuso do navegador).
+  eatenAt        DateTime @default(now())
+  /// Foto já reduzida no navegador (JPEG ~1280px), guardada no próprio Postgres.
+  photo          Bytes
+  photoMime      String
+  /// O que a pessoa escreveu sobre o prato.
+  description    String?
+  /// Áudio gravado no navegador (WAV mono 16 kHz), se a pessoa preferiu falar.
+  audio          Bytes?
+  audioMime      String?
+  /// Transcrição do áudio feita pelo Gemini na mesma chamada da análise.
+  transcript     String?
+  /// Perguntas de esclarecimento da IA e as respostas: [{ question, answer }].
+  clarifications Json?
+  /// Comparação desta refeição com o plano alimentar da pessoa (feita sob demanda).
+  planFeedback   Json?
+  /// Nome curto dado pela IA, ex.: "Arroz, feijão e bife acebolado".
+  title          String
+  /// Observações da IA: o que considerou da descrição, o que ficou incerto.
+  notes          String?
+  /// Modelo que fez a análise (o GEMINI_MODEL pode mudar com o tempo).
+  model          String
+  kcal           Float
+  protein        Float
+  carbs          Float
+  fat            Float
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  items MealItem[]
+
+  @@index([userId, eatenAt])
+}
+
+enum Confidence {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+/// Um alimento identificado no prato. Os nutrientes valem para `grams`;
+/// ajustar a porção escala tudo na mesma proporção.
+model MealItem {
+  id         String     @id @default(cuid())
+  mealId     String
+  meal       Meal       @relation(fields: [mealId], references: [id], onDelete: Cascade)
+  position   Int
+  name       String
+  grams      Float
+  /// "g" para comida, "ml" para bebida.
+  unit       String     @default("g")
+  /// Porção estimada pela IA, para mostrar quanto a pessoa ajustou.
+  aiGrams    Float
+  kcal       Float
+  protein    Float
+  carbs      Float
+  fat        Float
+  confidence Confidence
+
+  @@index([mealId])
+}
+
+/// Plano alimentar passado por um nutricionista, enviado em PDF. O Gemini lê o
+/// PDF uma vez e guarda um resumo estruturado (metas e refeições do plano),
+/// usado depois para comparar as refeições registradas.
+model MealPlan {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pdf       Bytes
+  fileName  String
+  /// { dailyKcal, protein, carbs, fat, meals: [{ name, time, foods[] }], guidelines[] }
+  summary   Json
+  model     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

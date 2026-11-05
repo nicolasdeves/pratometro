@@ -1,9 +1,9 @@
 import { Camera, MessageCircleQuestion, Mic } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { GoogleButton } from '../components/GoogleButton';
 import { Wordmark } from '../components/Logo';
-import { ApiError } from '../lib/api';
+import { ApiError, authApi, type AuthConfig } from '../lib/api';
 import { useAuth } from '../lib/auth';
 
 type Mode = 'login' | 'register';
@@ -20,6 +20,16 @@ export function LoginPage() {
     params.get('erro') === 'google' ? 'Não foi possível entrar com o Google. Tente de novo.' : null,
   );
   const [busy, setBusy] = useState(false);
+  // Em produção só há Google; e-mail e senha aparecem apenas se a API permitir (testes locais).
+  const [config, setConfig] = useState<AuthConfig | null>(null);
+
+  useEffect(() => {
+    authApi
+      .config()
+      .then(setConfig)
+      .catch(() => setConfig({ googleClientId: null, passwordLogin: false }));
+  }, []);
+  const passwordLogin = config?.passwordLogin ?? false;
 
   async function run(action: () => Promise<void>) {
     setError(null);
@@ -76,59 +86,88 @@ export function LoginPage() {
             <Wordmark />
           </div>
           <h2 className="text-2xl font-extrabold">
-            {mode === 'login' ? 'Bem-vindo de volta' : 'Crie sua conta'}
+            {mode === 'login' ? 'Bem-vindo' : 'Crie sua conta'}
           </h2>
           <p className="mt-1 text-sm text-muted">
-            {mode === 'login' ? 'Entre para registrar suas refeições.' : 'Leva menos de um minuto.'}
+            {mode === 'login'
+              ? 'Entre com sua conta Google para registrar suas refeições.'
+              : 'Leva menos de um minuto.'}
           </p>
 
-          <form onSubmit={submit} className="mt-6 space-y-3">
-            {mode === 'register' && (
-              <Field label="Nome" value={name} onChange={setName} autoComplete="name" />
-            )}
-            <Field
-              label="E-mail"
-              type="email"
-              value={email}
-              onChange={setEmail}
-              autoComplete="email"
-            />
-            <Field
-              label="Senha"
-              type="password"
-              value={password}
-              onChange={setPassword}
-              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-            />
+          {error && !passwordLogin && (
+            <p className="mt-6 rounded-xl bg-tomato-100 px-3 py-2 text-sm text-tomato-600">
+              {error}
+            </p>
+          )}
 
-            {error && (
-              <p className="rounded-xl bg-tomato-100 px-3 py-2 text-sm text-tomato-600">{error}</p>
-            )}
+          {passwordLogin && (
+            <form onSubmit={submit} className="mt-6 space-y-3">
+              {mode === 'register' && (
+                <Field label="Nome" value={name} onChange={setName} autoComplete="name" />
+              )}
+              <Field
+                label="E-mail"
+                type="email"
+                value={email}
+                onChange={setEmail}
+                autoComplete="email"
+              />
+              <Field
+                label="Senha"
+                type="password"
+                value={password}
+                onChange={setPassword}
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              />
 
-            <button
-              type="submit"
-              disabled={busy}
-              className="w-full rounded-full bg-leaf-600 py-3 font-bold text-white transition hover:bg-leaf-700 disabled:opacity-60"
-            >
-              {busy ? 'Aguarde…' : mode === 'login' ? 'Entrar' : 'Criar conta'}
-            </button>
-          </form>
+              {error && (
+                <p className="rounded-xl bg-tomato-100 px-3 py-2 text-sm text-tomato-600">
+                  {error}
+                </p>
+              )}
 
-          <GoogleButton onCredential={(c) => void run(() => loginWithGoogle(c))} />
+              <button
+                type="submit"
+                disabled={busy}
+                className="w-full rounded-full bg-leaf-600 py-3 font-bold text-white transition hover:bg-leaf-700 disabled:opacity-60"
+              >
+                {busy ? 'Aguarde…' : mode === 'login' ? 'Entrar' : 'Criar conta'}
+              </button>
+            </form>
+          )}
 
-          <p className="mt-6 text-center text-sm text-muted">
-            {mode === 'login' ? 'Ainda não tem conta?' : 'Já tem conta?'}{' '}
-            <button
-              type="button"
-              className="font-bold text-leaf-600 hover:underline"
-              onClick={() => {
-                setMode(mode === 'login' ? 'register' : 'login');
-                setError(null);
-              }}
-            >
-              {mode === 'login' ? 'Cadastre-se' : 'Entrar'}
-            </button>
-          </p>
+          {config?.googleClientId ? (
+            <div className={passwordLogin ? '' : 'mt-6'}>
+              <GoogleButton
+                clientId={config.googleClientId}
+                divider={passwordLogin}
+                onCredential={(c) => void run(() => loginWithGoogle(c))}
+              />
+            </div>
+          ) : (
+            config &&
+            !passwordLogin && (
+              <p className="mt-6 rounded-xl bg-cream px-3 py-2 text-sm text-muted">
+                Login indisponível no momento.
+              </p>
+            )
+          )}
+
+          {passwordLogin && (
+            <p className="mt-6 text-center text-sm text-muted">
+              {mode === 'login' ? 'Ainda não tem conta?' : 'Já tem conta?'}{' '}
+              <button
+                type="button"
+                className="font-bold text-leaf-600 hover:underline"
+                onClick={() => {
+                  setMode(mode === 'login' ? 'register' : 'login');
+                  setError(null);
+                }}
+              >
+                {mode === 'login' ? 'Cadastre-se' : 'Entrar'}
+              </button>
+            </p>
+          )}
         </div>
       </section>
     </div>

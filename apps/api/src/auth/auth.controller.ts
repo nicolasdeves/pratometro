@@ -7,6 +7,7 @@ import {
   Req,
   Res,
   UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
@@ -15,6 +16,7 @@ import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { Public } from './decorators/public.decorator';
+import { PasswordLoginGuard } from './guards/password-login.guard';
 import {
   googleLoginSchema,
   loginSchema,
@@ -44,6 +46,7 @@ export class AuthController {
   }
 
   @Public()
+  @UseGuards(PasswordLoginGuard)
   @Post('register')
   async register(
     @Body(new ZodValidationPipe(registerSchema)) dto: RegisterInput,
@@ -55,6 +58,7 @@ export class AuthController {
   }
 
   @Public()
+  @UseGuards(PasswordLoginGuard)
   @HttpCode(200)
   @Post('login')
   async login(

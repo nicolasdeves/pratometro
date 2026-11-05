@@ -122,8 +122,13 @@ async function toResult<T>(res: Response): Promise<T> {
   return (await res.json()) as T;
 }
 
+export interface AuthConfig {
+  googleClientId: string | null;
+  passwordLogin: boolean;
+}
+
 export const authApi = {
-  config: () => request<{ googleClientId: string | null }>('/auth/config'),
+  config: () => request<AuthConfig>('/auth/config'),
 
   login: (email: string, password: string) =>
     request<AuthResult>('/auth/login', {

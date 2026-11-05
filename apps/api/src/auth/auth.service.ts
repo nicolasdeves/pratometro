@@ -119,8 +119,20 @@ export class AuthService {
     return this.toPublic(user);
   }
 
-  publicConfig(): { googleClientId: string | null } {
-    return { googleClientId: this.config.get<string>('GOOGLE_CLIENT_ID') || null };
+  publicConfig(): { googleClientId: string | null; passwordLogin: boolean } {
+    return {
+      googleClientId: this.config.get<string>('GOOGLE_CLIENT_ID') || null,
+      passwordLogin: this.passwordLoginEnabled(),
+    };
+  }
+
+  /**
+   * Login/cadastro com e-mail e senha. Em produção o único acesso é pelo Google;
+   * a senha só existe para testes locais e precisa ser ligada explicitamente
+   * com AUTH_PASSWORD_LOGIN=true.
+   */
+  passwordLoginEnabled(): boolean {
+    return this.config.get<string>('AUTH_PASSWORD_LOGIN') === 'true';
   }
 
   /** Rotação: valida o refresh, revoga o antigo e emite um novo par. */

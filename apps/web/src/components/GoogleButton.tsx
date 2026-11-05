@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
-import { authApi } from '../lib/api';
+import { useEffect, useRef } from 'react';
 
 interface GoogleId {
   initialize: (cfg: {
@@ -37,7 +36,10 @@ function loadScript(): Promise<void> {
 }
 
 interface Props {
+  clientId: string;
   onCredential: (credential: string) => void;
+  /** Linha "ou" acima do botão, quando há também o formulário de senha. */
+  divider?: boolean;
 }
 
 /**
@@ -57,24 +59,12 @@ export function isInAppBrowser() {
 
 /**
  * Botão "Continuar com o Google" (Google Identity Services). Devolve um ID
- * token que a API valida. Some sozinho se a API não tiver GOOGLE_CLIENT_ID.
+ * token que a API valida. O client id vem de GET /auth/config (LoginPage).
  */
-export function GoogleButton({ onCredential }: Props) {
+export function GoogleButton({ clientId, onCredential, divider = false }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const callback = useRef(onCredential);
   callback.current = onCredential;
-  const [clientId, setClientId] = useState<string | null>(null);
-
-  useEffect(() => {
-    let alive = true;
-    authApi
-      .config()
-      .then((c) => alive && setClientId(c.googleClientId))
-      .catch(() => undefined);
-    return () => {
-      alive = false;
-    };
-  }, []);
 
   useEffect(() => {
     if (!clientId) return;
@@ -108,14 +98,15 @@ export function GoogleButton({ onCredential }: Props) {
     };
   }, [clientId]);
 
-  if (!clientId) return null;
   return (
     <>
-      <div className="my-5 flex items-center gap-3 text-xs font-medium text-muted">
-        <span className="h-px flex-1 bg-leaf-100" />
-        ou
-        <span className="h-px flex-1 bg-leaf-100" />
-      </div>
+      {divider && (
+        <div className="my-5 flex items-center gap-3 text-xs font-medium text-muted">
+          <span className="h-px flex-1 bg-leaf-100" />
+          ou
+          <span className="h-px flex-1 bg-leaf-100" />
+        </div>
+      )}
       {isInAppBrowser() ? (
         <p className="rounded-xl bg-leaf-50 px-3 py-2 text-center text-sm text-leaf-900">
           Para entrar com o Google, abra esta página no Safari ou no Chrome (toque em ⋯ e em “Abrir
